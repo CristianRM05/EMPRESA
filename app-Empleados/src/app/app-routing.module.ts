@@ -5,13 +5,15 @@ import {ListarcomponentComponent} from './listarcomponent/listarcomponent.compon
 import {LoginComponentComponent} from './login-component/login-component.component';
 import {ActualizaComponentComponent} from './actualiza-component/actualiza-component.component';
 import {ContactoComponentComponent} from './contacto-component/contacto-component.component';
+import {ErrorPersonalizadoComponent} from './error-personalizado/error-personalizado.component';
 
 const routes: Routes = [
-  { path: 'inicio', component: AppComponent },
+
   { path: 'lista', component: ListarcomponentComponent },
   { path: 'login', component: LoginComponentComponent },
   { path: 'actualiza/:id', component: ActualizaComponentComponent },
-  { path: 'contacto', component: ContactoComponentComponent }
+  { path: 'contacto', component: ContactoComponentComponent },
+  { path: '**', component: ErrorPersonalizadoComponent  }
 ];
 
 @NgModule({

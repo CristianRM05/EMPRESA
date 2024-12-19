@@ -11,6 +11,9 @@ import { FormsModule } from '@angular/forms';
 
 // Importamos AppRoutingModule donde se definen las rutas
 import { AppRoutingModule } from './app-routing.module';
+import { ErrorPersonalizadoComponent } from './error-personalizado/error-personalizado.component';
+import {DataService} from "./data.service";
+import {HttpClient, HttpClientModule} from "@angular/common/http";
 
 
 @NgModule({
@@ -21,12 +24,16 @@ import { AppRoutingModule } from './app-routing.module';
     ContactoComponentComponent,
     NavbarComponentComponent,
     ActualizaComponentComponent,
+    ErrorPersonalizadoComponent,
   ],
   imports: [
     BrowserModule,
     AppRoutingModule, // Importamos las rutas desde AppRoutingModule
-    FormsModule
+    FormsModule,
+    HttpClientModule,
   ],
+  providers: [DataService],
   bootstrap: [AppComponent]
+
 })
 export class AppModule { }

@@ -1,34 +1,70 @@
-import { Injectable } from '@angular/core';
+import { DataService } from './data.service';
 import { Empleado } from './models/empleado.model';
+import { Injectable } from '@angular/core';
+import { map, Observable } from 'rxjs';
 
 @Injectable({
-  providedIn: 'root' // Hace que el servicio esté disponible en toda la aplicación
+  providedIn: 'root'
 })
 export class EmpleadoService {
+  empleados: Empleado[] = [];
+  private idCounter: number = 0;
 
-  empleados = [
-    { id: 1, nombre: 'Juan', apellido: 'Pérez', email: 'juan.perez@example.com' },
-    { id: 2, nombre: 'Ana', apellido: 'Gómez', email: 'ana.gomez@example.com' },
-    { id: 3, nombre: 'Carlos', apellido: 'López', email: 'carlos.lopez@example.com' }
-  ];
-
-// El contador empieza con el tamaño de la lista de empleados
-  private idCounter: number = this.empleados.length;
-
-  constructor() { }
-
-  // Método para añadir empleado
-  agregarEmpleado( nombre: string, apellido: string, email: string): void {
-    // Incrementa el id y asigna a cada nuevo empleado
-    const newId = ++this.idCounter;
-
-    // Agrega el nuevo empleado con un id autoincremental
-    this.empleados.push({ id: newId, nombre, apellido, email });
+  constructor(private dataService: DataService) {
+    this.cargarEmpleados().subscribe(empleados => {
+      this.empleados = empleados;
+      this.idCounter = 0; // Actualizamos el contador
+    });
   }
 
-  // Método para obtener la lista de empleados
-  obtenerEmpleados(): { id:number; nombre: string; apellido: string; email: string }[] {
-    return this.empleados;
+  cargarEmpleados(): Observable<Empleado[]> {
+    return this.dataService.cargarEmpleados().pipe(
+      map((empleados: any) => {
+        if (!empleados) {
+          return []; // Si no hay empleados, devolvemos un array vacío
+        }
+        return Object.entries(empleados).map(([key, emp]: [string, any]) => ({
+          id: parseInt(key, 10), // Convertimos la clave a número
+          nombre: emp.nombre,
+          apellido: emp.apellido,
+          email: emp.email,
+        })).filter(emp => !isNaN(emp.id)); // Filtramos entradas con IDs no numéricos
+      })
+    );
+  }
+
+
+
+  agregarEmpleado(nombre: string, apellido: string, email: string): void {
+    const nuevoEmpleado: Empleado = {
+      id: ++this.idCounter,
+      nombre,
+      apellido,
+      email
+    };
+
+    // Agregamos el nuevo empleado a la lista local
+    this.empleados.push(nuevoEmpleado);
+
+    // Guardamos la lista completa de empleados en Firebase usando PUT
+    this.dataService.guardarEmpleados(this.empleados).subscribe(() => {
+      console.log("Lista de empleados actualizada con éxito.");
+    }, error => {
+      console.error("Error al guardar la lista de empleados:", error);
+    });
+  }
+
+  obtenerEmpleados(): Observable<Empleado[]> {
+    return this.cargarEmpleados();
+  }
+
+  setEmpleado(misEmpleados: Empleado[]): void {
+    this.empleados = misEmpleados.map(emp => ({
+      id: emp.id,
+      nombre: emp.nombre,
+      apellido: emp.apellido,
+      email: emp.email,
+    }));
   }
 
   encontrarEmpleado(id: number): Empleado | undefined {
@@ -41,6 +77,26 @@ export class EmpleadoService {
       empleado.nombre = nombre;
       empleado.apellido = apellido;
       empleado.email = email;
+
+      // Guardamos la lista completa después de actualizar
+      this.dataService.guardarEmpleados(this.empleados).subscribe(() => {
+        console.log("Empleado actualizado con éxito.");
+
+      });
     }
   }
+  eliminarEmpleado(id: number): void {
+    this.dataService.eliminarEmpleado(id).subscribe(() => {
+      console.log(`Empleado con ID ${id} eliminado de Firebase.`);
+      // Recargamos la lista de empleados
+      this.cargarEmpleados().subscribe((empleados) => {
+        this.empleados = empleados;
+        console.log("Lista de empleados actualizada después de la eliminación.");
+      });
+    }, error => {
+      console.error(`Error al eliminar el empleado con ID ${id}:`, error);
+    });
+  }
+
+
 }

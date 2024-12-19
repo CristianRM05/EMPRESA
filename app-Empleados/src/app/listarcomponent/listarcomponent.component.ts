@@ -13,14 +13,22 @@ import { Router} from '@angular/router';
 export class ListarcomponentComponent implements OnInit{
 
   empleados: {id:number; nombre: string; apellido: string; email: string }[] = [];
-  id: number  = 0;
+  id: number ;
 
   // Inyectamos el servicio
-  constructor(private empleadoService: EmpleadoService,   private router: Router) {}
+  constructor(protected empleadoService: EmpleadoService, private router: Router) {}
 
   // Cargamos la lista de empleados cuando el componente se inicializa
   ngOnInit(): void {
-    this.empleados = this.empleadoService.obtenerEmpleados();
+
+    // this.empleados = this.empleadoService.obtenerEmpleados();
+    console.log(this.empleadoService.obtenerEmpleados());
+    this.empleadoService.obtenerEmpleados().subscribe(misEmpleados=>{
+      console.log(misEmpleados);
+      this.empleados= Object.values(misEmpleados);
+
+      this.empleadoService.setEmpleado(this.empleados)
+    })
   }
 
 
